@@ -17,21 +17,9 @@ public class ObjectComparison
         var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
             new Person("Vasili III of Russia", 28, 170, 60, null!));
 
-        var currentActual = actualTsar;
-        var currentExpected = expectedTsar;
-        for (var i = 0; i > -MaxGenDepth; i--)
-        {
-	        if (currentExpected is null && currentActual is null)
-		        return;
-
-            CheckTsarFields(currentActual, currentExpected, i);
-
-            currentActual = currentActual?.Parent;
-            currentExpected = currentExpected?.Parent;
-        }
-
-		Assert.Fail("The verification depth has reached its maximum value.");
-	}
+        actualTsar.Should().BeEquivalentTo(expectedTsar, options => options
+	        .Excluding(info => info.Path.EndsWith(nameof(Person.Id))));
+    }
 
     [Test]
     [Description("Альтернативное решение. Какие у него недостатки?")]
@@ -50,6 +38,8 @@ public class ObjectComparison
          * Кроме того, реализация AreEqual рекурсивная
          * и при этом не защищена от замыкания (зацикливания) цепочки родословной.
          * Несколько лучшим решением было бы реализовать класс с интерфейсом IEqualityComparer<Person>.
+         * Реализация равенства не связана с классом Person,
+         * поэтому при изменении класса нужно не забывать о необходимости внесения правок в эту реализацию.
          */
 
         ClassicAssert.True(AreEqual(actualTsar, expectedTsar));
@@ -65,23 +55,5 @@ public class ObjectComparison
             && actual.Height == expected.Height
             && actual.Weight == expected.Weight
             && AreEqual(actual.Parent, expected.Parent);
-    }
-
-    private void CheckTsarFields(Person? actual, Person? expected, int genNumber)
-    {
-	    var message = $"the generation {genNumber}";
-
-	    if (expected is null)
-	    {
-		    actual.Should().BeNull(message);
-		    return;
-	    }
-
-		actual.Should().NotBeNull(message);
-	    expected.Should().NotBeNull(message);
-	    actual!.Name.Should().Be(expected!.Name, message);
-		actual!.Age.Should().Be(expected!.Age, message);
-		actual!.Height.Should().Be(expected!.Height, message);
-		actual!.Weight.Should().Be(expected!.Weight, message);
     }
 }
