@@ -6,35 +6,49 @@ namespace HomeExercise.Tasks.NumberValidator;
 [TestFixture]
 public class NumberValidatorTests
 {
-    [TestCase(-1, 0, false, "Non-positive total number of digits")]
-    [TestCase(1, -1, false, "Negative number of digits in fractional part")]
-    [TestCase(1, 2, false, 
-	    "Number of digits in fractional part greater or equal to total number of digits")]
-    public void NumberValidatorConstructor_ShouldThrow_ArgumentException(
+	[TestCase(-1, 0, false)]
+	public void Constructor_ShouldThrow_ArgumentException_When_NegativeTotalNumberOfDigits(
+		int precision,
+		int scale,
+		bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, true);
+
+	[TestCase(0, 0, false)]
+	public void Constructor_ShouldThrow_ArgumentException_When_ZeroTotalNumberOfDigits(
+		int precision,
+		int scale,
+		bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, true);
+
+	[TestCase(1, -1, false)]
+	public void Constructor_ShouldThrow_ArgumentException_When_NegativeNumberOfDigitsInFractionalPart(
+		int precision,
+		int scale,
+		bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, true);
+
+	[TestCase(1, 1, false)]
+	public void Constructor_ShouldThrow_ArgumentException_When_NumberOfDigitsInFractionalPartEqualTotalNumberOfDigits(
+		int precision,
+		int scale,
+		bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, true);
+
+	[TestCase(1, 2, false)]
+	public void Constructor_ShouldThrow_ArgumentException_When_NumberOfDigitsInFractionalPartGreaterTotalNumberOfDigits(
+		int precision,
+		int scale,
+		bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, true);
+
+	[TestCase(1, 0, false)]
+	public void Constructor_ShouldNotThrow_Exception_When_PositivePrecisionNonNegativeScaleAndScaleLessPrecision(
 	    int precision,
 	    int scale,
-	    bool onlyPositive,
-	    string message)
-    {
-	    var func = () => new NumberValidator(precision, scale, onlyPositive);
+	    bool onlyPositive)
+		=> CheckConstructorThrowArgumentException(precision, scale, onlyPositive, false);
 
-	    func.Should().Throw<ArgumentException>(message);
-	}
-
-    [TestCase(1, 0, false,
-	    "Positive precision, non-negative scale and scale less than precision")]
-	public void NumberValidatorConstructor_ShouldNotThrow_Exception(
-	    int precision,
-	    int scale,
-	    bool onlyPositive,
-	    string message)
-	{
-		var func = () => new NumberValidator(precision, scale, onlyPositive);
-		
-		func.Should().NotThrow(message);
-	}
-
-    [TestCase(null, 17, 2, true)]
+	[TestCase(null, 17, 2, true)]
     [TestCase("", 17, 2, true)]
     [TestCase("  \n\t  ", 17, 2, true)]
 	public void IsValidNumber_ShouldBe_False_When_NullOrEmpty(
@@ -51,7 +65,7 @@ public class NumberValidatorTests
     [TestCase("0.", 17, 2, true)]
     [TestCase("a23", 17, 2, true)]
     [TestCase("1e3", 17, 2, true)]
-    [TestCase("1.a23", 17, 2, true)]
+    [TestCase("1.a23", 17, 5, true)]
 	public void IsValidNumber_ShouldBe_False_When_DoesNotMatchFormat(
 	    string number,
 	    int precision,
@@ -119,5 +133,19 @@ public class NumberValidatorTests
 		    .IsValidNumber(number)
 		    .Should()
 		    .Be(isValid);
+	}
+
+	private void CheckConstructorThrowArgumentException(
+		int precision,
+		int scale,
+		bool onlyPositive,
+		bool shouldThrow)
+	{
+		var func = () => new NumberValidator(precision, scale, onlyPositive);
+
+		if (shouldThrow)
+			func.Should().Throw<ArgumentException>();
+		else
+			func.Should().NotThrow();
 	}
 }
