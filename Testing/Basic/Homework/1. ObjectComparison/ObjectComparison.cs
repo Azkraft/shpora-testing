@@ -5,8 +5,6 @@ using NUnit.Framework.Legacy;
 namespace HomeExercise.Tasks.ObjectComparison;
 public class ObjectComparison
 {
-	private const int MaxGenDepth = 1000;
-
     [Test]
     [Description("Проверка текущего царя")]
     [Category("ToRefactor")]
@@ -16,9 +14,11 @@ public class ObjectComparison
 
         var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
             new Person("Vasili III of Russia", 28, 170, 60, null!));
-
+        
         actualTsar.Should().BeEquivalentTo(expectedTsar, options => options
-	        .Excluding(info => info.Path.EndsWith(nameof(Person.Id))));
+	        .Excluding(info =>
+		        info.Path == nameof(Person.Id)
+		        || info.Path.EndsWith($".{nameof(Person.Id)}")));
     }
 
     [Test]
